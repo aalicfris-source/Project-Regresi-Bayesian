@@ -1,0 +1,424 @@
+## 1. Packages yang dibutuhkan
+library(readxl)
+library(psych)
+library(lmtest)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(GGally)
+library(brms)
+library(bayesplot)
+library(loo)
+library(car) 
+library(moments)
+library(Metrics)
+library(posterior)
+library(randomForest)
+library(gridExtra)
+
+## LANGKAH 1: BACA DATA & EKSPLORASI
+SEED <- 1234
+set.seed(SEED)
+kapal_raw <- read_excel("C:/Users/ASUS/Downloads/data.xlsx")
+kapal <- kapal_raw[, 1:7]
+names(kapal) <- c("LCB", "PC", "LDR", "BDR", "LBR", "Fn", "r")
+kapal <- kapal %>% mutate(across(everything(), as.numeric)) 
+head(kapal)
+
+cat("Jumlah observasi:", nrow(kapal), "\n")
+cat("Jumlah desain lambung unik:", nrow(distinct(kapal, LCB, PC, LDR, BDR, LBR)), "\n")
+cat("Jumlah Fn unik:", nrow(distinct(kapal, Fn)), "\n")
+sort(unique(kapal$Fn))
+table(kapal$Fn)
+
+# Membuat ID Kapal (desain lambung unik)
+kapal <- kapal %>%
+  mutate(ID_kapal = interaction(LCB, PC, LDR, BDR, LBR, drop = TRUE))
+table(kapal$ID_kapal)
+nlevels(kapal$ID_kapal)
+
+# Dimensi & Cek Missing Data
+dim(kapal)
+sapply(kapal, class)
+colSums(is.na(kapal))
+
+# Ringkasan Statistik Detail
+cat("\n--- Statistik Deskriptif ---\n")
+stat_desc <- describe(kapal %>% select(LCB, PC, LDR, BDR, LBR, Fn, r))
+print(round(stat_desc[, c("mean", "sd", "median", "min", "max", "skew", "kurtosis")], 3))
+
+# Matriks Korelasi (Spearman)
+cat("\n--- MATRIKS KORELASI (SPEARMAN) ---\n")
+kapal_num <- kapal[sapply(kapal, is.numeric)]
+spearman <- cor(kapal_num, use = "complete.obs", method = "spearman")
+print(round(spearman, 3))
+
+# Visualisasi Histogram
+hist(kapal$r, main = "Distribusi Target (r)", xlab = "r", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$r), col = "red", lwd = 2)
+hist(kapal$LCB, main = "LCB", xlab = "LCB", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$LCB), col = "red", lwd = 2)
+hist(kapal$PC, main = "PC", xlab = "PC", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$PC), col = "red", lwd = 2)
+hist(kapal$LDR, main = "LDR", xlab = "LDR", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$LDR), col = "red", lwd = 2)
+hist(kapal$BDR, main = "BDR", xlab = "BDR", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$BDR), col = "red", lwd = 2)
+hist(kapal$LBR, main = "LBR", xlab = "LBR", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$LBR), col = "red", lwd = 2)
+hist(kapal$Fn, main = "Fn", xlab = "Fn", col = "blue", border = "black", freq = FALSE)
+lines(density(kapal$Fn), col = "red", lwd = 2)
+
+# Boxplot Cek Outlier
+boxplot(kapal$r, main = "Boxplot r", col = "orange")
+boxplot(kapal$LCB, main = "Boxplot LCB", col = "orange")
+boxplot(kapal$PC, main = "Boxplot PC", col = "orange")
+boxplot(kapal$LDR, main = "Boxplot LDR", col = "orange")
+boxplot(kapal$BDR, main = "Boxplot BDR", col = "orange")
+boxplot(kapal$LBR, main = "Boxplot LBR", col = "orange")
+boxplot(kapal$Fn, main = "Boxplot Fn", col = "orange")
+
+# Perhitungan Outlier IQR (Perbaikan objek variabel_model)
+kolom_numerik <- c("LCB", "PC", "LDR", "BDR", "LBR", "Fn", "r")
+jumlah_outlier <- sapply(kapal[kolom_numerik], function(x) {
+  Q1 <- quantile(x, 0.25, na.rm = TRUE)
+  Q3 <- quantile(x, 0.75, na.rm = TRUE)
+  IQR_x <- Q3 - Q1
+  sum(x < (Q1 - 1.5 * IQR_x) | x > (Q3 + 1.5 * IQR_x), na.rm = TRUE)
+})
+outlier_variabel <- data.frame(Variabel = kolom_numerik, Jumlah_Outlier = jumlah_outlier)
+print(outlier_variabel)
+
+# Multikolinearitas & Heteroskedastisitas
+model_uji <- lm(r ~ LCB + PC + LDR + BDR + LBR + Fn, data = kapal)
+cat("\n--- VIF ---\n")
+print(vif(model_uji))
+cat("\n--- Uji Breusch-Pagan ---\n")
+print(bptest(model_uji))
+
+# Scatterplot r terhadap LCB,PC,LDR,BDR,LBR,fn
+plot(kapal$LCB, kapal$r, main = "LCB vs r", 
+     xlab = "LCB", ylab = "r", pch = 19, col = "blue")
+plot(kapal$PC, kapal$r, main = "PC vs r", 
+     xlab = "PC", ylab = "r", pch = 19, col = "blue")
+plot(kapal$LDR, kapal$r, main = "LDR vs r", 
+     xlab = "LDR", ylab = "r", pch = 19, col = "blue")
+plot(kapal$BDR, kapal$r, main = "BDR vs r", 
+     xlab = "BDR", ylab = "r", pch = 19, col = "blue")
+plot(kapal$LBR, kapal$r, main = "LBR vs Hr", 
+     xlab = "LBR", ylab = "r", pch = 19, col = "blue")
+plot(kapal$Fn, kapal$r, main = "fn vs r", 
+     xlab = "fn", ylab = "r", pch = 19, col = "blue")
+
+## LANGKAH 2: EDA TERARAH & SPLIT TRAIN-TEST
+p_r_fn <- ggplot(kapal, aes(Fn, r)) +
+  geom_point(alpha = 0.5) + geom_smooth(method = "loess", se = FALSE, colour = "red") +
+  labs(title = "r vs Fn (Skala Asli)") + theme_minimal()
+print(p_r_fn)
+cat("Korelasi Fn dengan r:", round(cor(kapal$Fn, kapal$r), 3), "\n")
+
+# Standardisasi variabel prediktor
+kapal_std <- kapal %>%
+  mutate(across(c(LCB, PC, LDR, BDR, LBR, Fn), ~ as.numeric(scale(.)))) 
+formula_model <- r ~ Fn + LCB + PC + LDR + BDR + LBR
+head(kapal)
+
+# Split Train-Test berdasarkan ID_kapal unik (mencegah leakage)
+set.seed(1234)
+ID_kapal_unik <- unique(kapal_std$ID_kapal)
+Data_Train_ID <- sample(ID_kapal_unik, size = floor(0.80 * length(ID_kapal_unik)))
+Data_Test_ID  <- setdiff(ID_kapal_unik, Data_Train_ID)
+Train <- kapal_std[kapal_std$ID_kapal %in% Data_Train_ID, ]
+Test  <- kapal_std[kapal_std$ID_kapal %in% Data_Test_ID, ]
+
+idx_Train <- kapal$ID_kapal %in% Data_Train_ID
+idx_Test  <- !idx_Train
+
+cat("\nUkuran Data: Train =", nrow(Train), "| Test =", nrow(Test), "| Total =", nrow(kapal_std), "\n")
+
+# Cek Kebocoran Data (Data Leakage)
+Leakage <- intersect(unique(Train$ID_kapal), unique(Test$ID_kapal))
+cat("Jumlah ID_kapal beririsan (Leakage):", length(Leakage), "\n")
+
+## LANGKAH 3: BASELINE OLS
+model_ols <- lm(formula_model, data = Train)
+cat("\n=== Baseline OLS ===\n")
+print(summary(model_ols))
+cat("Skewness Residual OLS:", round(skewness(residuals(model_ols)), 4), "\n")
+cat("\n--- VIF OLS ---\n")
+print(vif(model_ols))
+cat("\n--- Uji Breusch-Pagan OLS ---\n")
+print(bptest(model_ols))
+
+# Grafik Diagnostik OLS
+plot(model_ols)
+
+# Influential Observations
+cooksd <- cooks.distance(model_ols)
+batas_cook <- 4 / nrow(Train)
+obs_berpengaruh <- which(cooksd > batas_cook)
+cat("Jumlah observasi berpengaruh (Cook's D >", round(batas_cook, 4), "):",
+    length(obs_berpengaruh), "dari", nrow(Train), "\n")
+plot(cooksd, type = "h", main = "Cook's Distance", ylab = "Cook's D")
+abline(h = batas_cook, col = "red", lty = 2)
+
+# Leverage
+leverage<- hatvalues(model_ols)
+plot(leverage,type = "h",main = "Leverage",ylab = "Leverage")
+
+## LANGKAH 4: ESTIMASI REGRESI BAYESIAN
+diagnosis_bayesian <- data.frame(
+  Variabel = c("LCB", "PC", "LDR", "BDR", "LBR", "Fn", "r"),
+  Permasalahan = c("Terdapat outlier", 
+                   "Tidak menunjukkan masalah",
+                   "Multikolinearitas sangat tinggi",
+                   "Terdapat outlier dan Multikolinearitas tinggi",
+                   "Multikolinearitas sangat tinggi", 
+                   "Hubungan terhadap r nonlinear",
+                   "Skewness positif, outlier, dan heteroskedastisitas"),
+  Penanganan_Bayesian = c(rep("Standardisasi + regularizing prior", 5),
+                          "Spline Bayesian s(Fn)", "Student-t + sigma ~ s(Fn)")
+)
+print(diagnosis_bayesian)
+
+# Model regresi bayesian student-t pada data train
+model_student <- brm(r ~LCB +PC +LDR +BDR +LBR +Fn +(1 | ID_kapal),
+                     data = Train,
+                     family = student(),
+                     prior = c(
+                       prior(normal(0, 1),class = "b"),
+                       prior(student_t(3, 0, 10),class = "Intercept"),
+                       prior(exponential(1),class = "sigma"),
+                       prior(gamma(2, 0.1),class = "nu"),
+                       prior(exponential(1),class = "sd")),
+                     chains = 4,
+                     iter = 4000,
+                     warmup = 2000,
+                     cores = 4,
+                     seed = 1234,
+                     control = list(
+                       adapt_delta = 0.95))
+print(model_student)
+
+# Model regresi bayesian spline pada data train
+model_spline <- brm(r ~ LCB +PC +LDR +BDR +LBR +s(Fn) +(1 | ID_kapal),
+                    data = Train,
+                    family = student(),
+                    prior = c(
+                      prior(normal(0, 1),class = "b"),
+                      prior(student_t(3, 0, 10),class = "Intercept"),
+                      prior(exponential(1),class = "sigma"),
+                      prior(gamma(2, 0.1),class = "nu"),
+                      prior(exponential(1),class = "sd"),
+                      prior(exponential(1),class = "sds")),
+                    chains = 4,
+                    iter = 4000,
+                    warmup = 2000,
+                    cores = 4,
+                    seed = 1234,
+                    control = list(adapt_delta = 0.95,max_treedepth = 12))
+print(model_spline)
+
+# Model regresi bayesian heteroskedastisitas pada data train
+model_hetero <- brm(bf(r ~LCB +PC +LDR +BDR +LBR +s(Fn) +(1 | ID_kapal),
+                       sigma ~ s(Fn)),
+                    data = Train,
+                    family = student(),
+                    prior = c(
+                      prior(normal(0, 1),class = "b"),
+                      prior(student_t(3, 0, 10),class = "Intercept"),
+                      prior(exponential(1),class = "sd"),
+                      prior(exponential(1),class = "sds"),
+                      prior(gamma(2, 0.1),class = "nu"),
+                      prior(student_t(3, 0, 2.5), class = "Intercept", dpar = "sigma"),
+                      prior(exponential(1), class = "sds", dpar = "sigma")),
+                    chains = 4,
+                    iter = 4000,
+                    warmup = 2000,
+                    cores = 4,
+                    seed = 1234,
+                    control = list(adapt_delta = 0.95,max_treedepth = 15))
+print(model_hetero)
+
+# Model regresi bayesian skewness pada data train
+model_skew <- brm(bf(r ~LCB +PC +LDR +BDR +LBR +s(Fn) +(1 | ID_kapal),
+                     sigma ~ s(Fn)),
+                  data = Train,
+                  family = skew_normal(),
+                  prior = c(
+                    prior(normal(0, 1),class = "b"),
+                    prior(student_t(3, 0, 10),class = "Intercept"),
+                    prior(exponential(1),class = "sd"),
+                    prior(exponential(1),class = "sds"),
+                    prior(normal(0, 2), class = "alpha"),
+                    prior(student_t(3, 0, 2.5), class = "Intercept", dpar = "sigma"),
+                    prior(exponential(1), class = "sds", dpar = "sigma")),
+                  chains = 4,
+                  iter = 4000,
+                  warmup = 2000,
+                  cores = 4,
+                  seed = 1234,
+                  save_pars = save_pars(all = TRUE),
+                  control = list(adapt_delta = 0.99,max_treedepth = 15))
+print(model_skew)
+
+# Model bayesian Gabungan yang dipakai (Student-t + Spline + Heteroskedastisitas) 
+model_gab <- model_hetero
+# Hitung LOO standar untuk masing-masing model
+loo_student <- loo(model_student)
+loo_spline  <- loo(model_spline)
+loo_hetero  <- loo(model_gab)
+loo_skew    <- loo(model_skew)
+
+loo_models <- list(Student = loo_student, Spline = loo_spline,
+                   Hetero = loo_hetero, Skew = loo_skew)
+loo_compare(loo_models)
+
+# Evaluasi posterior model bayesian (Student-t + Spline + Heteroskedastisitas) 
+posterior_summary(model_gab)
+posterior_interval(model_gab, prob = 0.95)
+plot(model_gab)
+
+# Validasi model Bayesian: posterior predictive checking (MCMC/komputasi)
+pp_check(model_gab, ndraws = 100) +
+  labs(title = "Posterior Predictive Check: y (data) vs y_rep (replikasi)")
+
+# Diagnostik MCMC: R-hat dan effective sample size
+rhat_vals <- brms::rhat(model_gab)
+cat("R-hat maksimum (target <= 1.01) :", round(max(rhat_vals, na.rm = TRUE), 4), "\n")
+mcmc_trace(model_gab, regex_pars = c("b_Intercept", "Fn"))
+
+# Residual Bayesian (rata-rata posterior residual)
+resid_bayes <- residuals(model_gab)[, "Estimate"]
+qqnorm(resid_bayes, main = "QQ-Plot Residual Model Bayesian"); qqline(resid_bayes)
+
+# Sensitivity analysis: ganti prior, cek kestabilan estimasi posterior
+buat_prior <- function(sd_b) {
+  c(prior_string(paste0("normal(0, ", sd_b, ")"), class = "b"),
+    prior(student_t(3, 0, 10), class = "Intercept"),
+    prior(gamma(2, 0.1), class = "nu"),
+    prior(exponential(1), class = "sd"),
+    prior(exponential(1), class = "sds"),
+    prior(student_t(3, 0, 2.5), class = "Intercept", dpar = "sigma"),
+    prior(exponential(1), class = "sds", dpar = "sigma"))
+}
+fit_sens <- function(sd_b, nama) {
+  brm(bf(r ~ LCB + PC + LDR + BDR + LBR + s(Fn) + (1 | ID_kapal), sigma ~ s(Fn)),
+      data = Train, family = student(), prior = buat_prior(sd_b),
+      chains = 4, iter = 3000, warmup = 1500, cores = 4, seed = SEED,
+      save_pars = save_pars(all = TRUE),
+      control = list(adapt_delta = 0.95, max_treedepth = 12),
+      file = nama, file_refit = "on_change")
+}
+model_prior_kuat   <- fit_sens(0.5, "fit_prior_kuat")    # normal(0, 0.5)
+model_prior_medium <- fit_sens(1,   "fit_prior_medium")  # normal(0, 1)
+model_prior_lemah  <- fit_sens(2,   "fit_prior_lemah")   # normal(0, 2)
+
+get_robust_loo <- function(model) {
+  l <- loo(model)
+  if (any(l$diagnostics$pareto_k > 0.7)) {
+    l <- tryCatch(
+      loo_moment_match(model, loo = l),
+      error = function(e) reloo(model, loo = l)
+    )
+  }
+  return(l)
+}
+loo_bayesian_compare <- loo_compare(
+  list(Prior_kuat   = get_robust_loo(model_prior_kuat),
+       Prior_medium = get_robust_loo(model_prior_medium),
+       Prior_lemah  = get_robust_loo(model_prior_lemah)))
+cat("\n=== Perbandingan LOO Cross-Validation (Sensitivity Analysis) ===\n")
+print(loo_bayesian_compare)
+
+## LANGKAH 5: BENCHMARK RANDOM FOREST 
+set.seed(SEED)
+model_rf_tr <- randomForest(r ~ Fn + LCB + PC + LDR + BDR + LBR,
+                            data = kapal[idx_Train, ], ntree = 500,
+                            importance = TRUE)
+summary(model_rf_tr)
+
+# Ringkasan hasil model pada data train
+cat("\n[1] OLS (baseline)\n")
+cat("    Formula :", deparse(formula_model), "\n")
+cat("    Metode  : lm() - Ordinary Least Squares\n")
+cat("    R2 (train)      :", round(summary(model_ols)$r.squared, 4), "\n")
+cat("    R2 adjusted     :", round(summary(model_ols)$adj.r.squared, 4), "\n")
+
+cat("\n[2] Regresi Bayesian\n")
+cat("    Formula :", deparse(formula_model), "\n")
+cat("    Metode  : brm() - MCMC (Stan/NUTS), 4 chains x 4000 iter (1000 warmup)\n")
+rhat_tr <- brms::rhat(model_gab)
+cat("    R-hat maksimum (target <= 1.01) :", round(max(rhat_tr, na.rm = TRUE), 4), "\n")
+
+cat("\n[3] Random Forest (benchmark)\n")
+cat("    Formula :", deparse(formula(model_rf_tr)), "\n")
+cat("    Metode  : randomForest(), ntree = 500\n")
+cat("    % Var explained (train, OOB) :", round(model_rf_tr$rsq[length(model_rf_tr$rsq)] * 100, 2), "%\n")
+
+## LANGKAH 6: Evaluasi Model Data Test
+pred_ols <- predict(model_ols, newdata = Test)
+epred_draws <- posterior_epred(model_gab, newdata = Test, allow_new_levels = TRUE)
+pred_bayes  <- colMeans(epred_draws)
+pred_rf     <- predict(model_rf_tr, newdata = kapal[idx_Test, ])
+aktual      <- Test$r
+
+mape    <- function(a, p) mean(abs((a - p) / a)) * 100
+smape_p <- function(a, p) mean(2 * abs(a - p) / (abs(a) + abs(p))) * 100
+r2_test <- function(a, p) 1 - sum((a - p)^2) / sum((a - mean(a))^2)
+
+evaluasi_test <- data.frame(
+  Model = c("OLS (baseline)", "Regresi Bayesian", "Random Forest (benchmark)"),
+  RMSE  = c(Metrics::rmse(aktual, pred_ols), Metrics::rmse(aktual, pred_bayes), Metrics::rmse(aktual, pred_rf)),
+  MAE   = c(Metrics::mae(aktual, pred_ols),  Metrics::mae(aktual, pred_bayes),  Metrics::mae(aktual, pred_rf)),
+  MAPE  = c(mape(aktual, pred_ols), mape(aktual, pred_bayes), mape(aktual, pred_rf)),
+  sMAPE = c(smape_p(aktual, pred_ols), smape_p(aktual, pred_bayes), smape_p(aktual, pred_rf)),
+  R2    = c(r2_test(aktual, pred_ols), r2_test(aktual, pred_bayes), r2_test(aktual, pred_rf))
+)
+cat("\n=== Evaluasi lengkap pada data TEST (n =", nrow(Test), ") ===\n")
+cat("Catatan: r minimum = 0.01 sehingga MAPE sangat sensitif; gunakan sMAPE/RMSE/MAE sebagai pelengkap.\n")
+print(evaluasi_test, digits = 4)
+
+# Cakupan interval prediksi 95% model Bayesian pada data test
+ypred_draws <- posterior_predict(model_gab, newdata = Test, allow_new_levels = TRUE)
+lo <- apply(ypred_draws, 2, quantile, probs = 0.025)
+hi <- apply(ypred_draws, 2, quantile, probs = 0.975)
+cat("Cakupan interval prediksi 95% pada data test:",
+    round(mean(aktual >= lo & aktual <= hi) * 100, 1), "%\n")
+
+## LANGKAH 7: VISUALISASI HASIL & PRIOR-LIKELIHOOD-POSTERIOR
+# Plot 1: Indeks observasi vs prediksi
+df_pred_long <- data.frame(
+  idx = rep(seq_len(nrow(Test)), 4),
+  nilai = c(aktual, pred_ols, pred_bayes, pred_rf),
+  Seri = factor(rep(c("Aktual", "OLS", "Regresi Bayesian", "Random Forest"), each = nrow(Test)),
+                levels = c("Aktual", "OLS", "Regresi Bayesian", "Random Forest")))
+
+p_line <- ggplot(df_pred_long, aes(x = idx, y = nilai, color = Seri, linewidth = Seri, alpha = Seri)) +
+  geom_line() +
+  scale_linewidth_manual(values = c(Aktual = 1.1, OLS = 0.6, `Regresi Bayesian` = 0.6, `Random Forest` = 0.6)) +
+  scale_alpha_manual(values = c(Aktual = 1, OLS = 0.85, `Regresi Bayesian` = 0.85, `Random Forest` = 0.85)) +
+  scale_color_manual(values = c(Aktual = "black", OLS = "blue", `Regresi Bayesian` = "red", `Random Forest` = "green")) +
+  labs(title = "Aktual vs Prediksi pada Data Test",
+       subtitle = "Perbandingan Hasil Prediksi Seluruh Model terhadap Data Aktual",
+       x = "Indeks Observasi (Data Test)", y = "Hambatan Sisa (r)") +
+  theme_minimal(base_size = 12)
+print(p_line)
+
+# Plot 2: Scatter aktual vs prediksi
+df_scatter <- data.frame(
+  aktual = rep(aktual, 3),
+  prediksi = c(pred_ols, pred_bayes, pred_rf),
+  Model = factor(rep(c("OLS", "Regresi Bayesian", "Random Forest"), each = length(aktual)),
+                 levels = c("OLS", "Regresi Bayesian", "Random Forest")))
+
+p_scatter <- ggplot(df_scatter, aes(x = aktual, y = prediksi, color = Model)) +
+  geom_point(alpha = 0.7, size = 2) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey") +
+  facet_wrap(~Model) +
+  scale_color_manual(values = c(OLS = "blue", `Regresi Bayesian` = "red", `Random Forest` = "green")) +
+  labs(title = "Aktual vs Prediksi per Model (Data Test)",
+       subtitle = "Garis putus-putus = kesesuaian sempurna (y = x)",
+       x = "Nilai Aktual (r)", y = "Nilai Prediksi (r)") +
+  theme_minimal(base_size = 12) + theme(legend.position = "none")
+print(p_scatter)
