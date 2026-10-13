@@ -73,61 +73,79 @@ kecil. Karena itu sMAPE, RMSE, dan MAE digunakan sebagai pelengkap.
 
 ---
 
-## 🚀 4. Panduan Menjalankan Proyek
+## 🚀 Panduan Menjalankan Proyek
 
-### A. Prasyarat Paket R (*Prerequisites*)
-Sebelum menjalankan proyek, pastikan seluruh paket R yang diperlukan sudah terpasang di lingkungan R/RStudio Anda:
+### **A. Prasyarat Paket R (Prerequisites)**
+Sebelum menjalankan proyek, pastikan seluruh paket R yang diperlukan telah terpasang:
 
 ```r
 install.packages(c(
   "shiny", "bslib", "ggplot2", "dplyr", "tidyr", "readxl", 
-  "gridExtra", "Metrics", "tibble", "brms", "bayesplot", 
-  "psych", "lmtest", "car", "randomForest", "e1071", "rsconnect"
+  "psych", "lmtest", "car", "randomForest", "brms", "loo", 
+  "Metrics", "posterior", "DT", "rsconnect"
 ))
 ```
 
-### B. Menjalankan Skrip Pre-Computation & Aplikasi Shiny Secara Lokal
-Proyek ini menggunakan metode dua tahap eksekusi: pengolahan data & pemodelan awal (`Pre.R`), dilanjutkan dengan menjalankan dashboard Shiny (`app.R`).
+---
 
-1. **Jalankan Skrip Pre-Computation:**  
-   Pastikan direktori kerja (*working directory*) sudah diarahkan ke folder proyek, lalu jalankan skrip `Pre.R` untuk melatih model dan menghasilkan file `precomputed_bayes_model.rds`:
+### **B. Menjalankan Pre-Komputasi & Aplikasi Secara Lokal**
 
-   ```r
-   # Set direktori kerja (sesuaikan dengan lokasi folder Anda)
-   setwd("path/to/your/project")
+Proyek ini menggunakan alur eksekusi dua tahap: **Pengolahan Data & Pemodelan Pre-komputasi** (`pree.R`), dilanjutkan dengan **Dashboard Shiny** (`app.R`).
 
-   # Jalankan skrip pemodelan
-   source("Pre.R")
-   ```
+#### **1. Jalankan Skrip Pre-Komputasi (`pree.R`)**
+Buka RStudio, arahkan *working directory* ke folder proyek, lalu jalankan skrip pre-komputasi untuk melatih model Bayesian dan memproses data EDA. File hasil komputasi akan disimpan secara otomatis di dalam direktori `hasil_pre/hasil_dashboard.rds`.
 
-2. **Jalankan Dashboard Shiny:**  
-   Setelah file `precomputed_bayes_model.rds` berhasil dibuat, jalankan aplikasi Shiny melalui skrip `app.R`:
+```r
+# Set direktori kerja ke lokasi proyek Anda
+setwd("path/to/your/project")
 
-   ```r
-   library(shiny)
+# Jalankan skrip pemodelan & analisis EDA
+source("pree.R")
+```
 
-   # Menjalankan aplikasi Shiny
-   runApp("app.R")
-   ```
+> **Catatan:** Skrip `pree(2).R` dapat digunakan jika Anda ingin memperbarui visualisasi plot EDA secara proporsional tanpa melakukan pemodelan ulang MCMC.
 
-### C. Deploy ke ShinyApps.io
-Untuk mempublikasikan aplikasi ke layanan [ShinyApps.io](https://www.shinyapps.io/), jalankan perintah berikut di konsol RStudio Anda:
+#### **2. Jalankan Dashboard Shiny (`app.R`)**
+Setelah proses pre-komputasi selesai dan folder `hasil_pre/` terbentuk, jalankan dashboard dengan perintah berikut:
+
+```r
+library(shiny)
+
+# Menjalankan aplikasi
+runApp("app.R")
+```
+
+---
+
+### **C. Deploy ke ShinyApps.io**
+
+Untuk mempublikasikan aplikasi ke layanan **ShinyApps.io**, pastikan folder `hasil_pre/` beserta file `.rds` di dalamnya terikut dalam proses *deployment*:
 
 ```r
 library(rsconnect)
 
-# Melakukan deployment aplikasi
+# Melakukan deployment aplikasi ke ShinyApps.io
 rsconnect::deployApp(
   appDir        = getwd(),
   appPrimaryDoc = "app.R",
   appName       = "bayesian-yacht-hydrodynamics",
-  appFiles      = c("app.R", "precomputed_bayes_model.rds"),
+  appFiles      = c(
+    "app.R",
+    "hasil_pre/hasil_dashboard.rds",
+    "hasil_pre/model/m_hetero.rds",
+    "hasil_pre/model_rf.rds"
+  ),
   lint          = FALSE,
   forceUpdate   = TRUE
 )
 ```
-🌐 **Live Demo Dashboard:**  
-[https://regresibayesian.shinyapps.io/Bayesian7/) .
+
+---
+
+## 🌐 Live Demo Dashboard
+
+Akses aplikasi interaktif yang telah di-deploy secara langsung melalui tautan berikut:  
+👉 [https://regresibayesian.shinyapps.io/RegresiBayesian//)
 
 ---
 
