@@ -21,7 +21,21 @@ Tantangan utama data ini adalah:
 4. ⁠Pada variabel prediktor (Fn) terdapat p**ola polinomial yang non linear**.
 
 Untuk mengatasi tantangan tersebut, diterapkan:
-Dari tantangan data tersebut maka dilakukan penanganan dengan pendekatan **bayesian** dengan pemilihan **likelihood gaussian normal**, **prior weakly informative**, kemudian melakukan **evaluasi diagnosis konvergensi MCMC** serta melakukan e**valuasi posterior** menggunakan **Leave One Out Cross Validation(LOO CV)**.
+Dari tantangan data tersebut maka dilakukan penanganan dengan pendekatan **bayesian** dengan pemilihan 
+**Empat model Bayesian dibangun pada data train menggunakan paket brms (MCMC NUTS,
+4 rantai, 4000 iterasi dengan 2000 warmup, total 8000 sampel posterior), semuanya dengan efek
+acak (1 | ID_kapal):
+• Model Student-t: efek linear untuk seluruh prediktor termasuk Fn, dengan likelihood
+Student-t.
+• Model Spline: Fn dimodelkan dengan spline s(Fn), likelihood Student-t*.
+• Model Heteroskedastis: spline s(Fn) pada rata-rata dan pada parameter sigma (sigma ~
+s(Fn)), likelihood Student-t.
+• Model Skew-normal: struktur sama dengan model heteroskedastis, tetapi dengan likelihood
+skew-normal.
+Prior yang digunakan bersifat weakly informative, yaitu koefisien (b) ~ Normal(0, 1),
+intercept ~ Student-t(3, 0, 10), simpangan baku efek acak (sd) dan spline (sds) ~ Exponential(1),
+derajat kebebasan nu ~ Gamma(2, 0,1), serta pada sigma digunakan intercept ~ Student-t(3, 0, 2,5)
+dan sds ~ Exponential(1)**.
 
 ---
 
