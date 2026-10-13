@@ -43,11 +43,17 @@ dan sds ~ Exponential(1)**.
 
 Pemodelan dilakukan menggunakan **Regresi Bayesian** sebagai model utama, **OLS** sebagai *baseline*, dan **Random Forest** sebagai *benchmark*. Model dilatih pada *data train* dan dievaluasi pada *data test* menggunakan rasio pemisahan (*train-test split*) sebesar **80:20**.
 
-| Model Evaluasi | RMSE | MAE | MAPE (%) | $R^2$ Score |
-| :--- | :---: | :---: | :---: | :---: |
-| 1. Baseline OLS | 8.586 | 6.916 | 26.99 | 0.9888 |
-| **2. Regresi Bayesian (Utama)** | **5.918** | **2.299** | **27.31** | **0.9889** |
-| 3. Random Forest (AI Benchmark) | 3.228 | 2.208  | 743.74 | 0.9282 |
+| Model Evaluasi | RMSE | MAE | MAPE (%) | sMAPE (%) | $R^2$ Score |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| 1. OLS (*baseline*) | 8,586 | 6,916 | 1559,51 | 100,14 | 0,6659 |
+| **2. Regresi Bayesian (Utama)** | **5,918** | **2,299** | **27,51** | **20,16** | **0,8413** |
+| 3. Random Forest (*benchmark*) | 3,228 | 2,208 | 472,18 | 60,86 | 0,9528 |
+
+## Catatan Analisis
+
+* **Regresi Bayesian:** Menunjukkan performa yang seimbang dan stabil pada metrik persentase kesalahan seperti **MAPE (27,51%)** dan **sMAPE (20,16%)**, serta koefisien determinasi ($R^2$ = **0,8413**).
+* **OLS (*baseline*):** Memberikan hasil paling rendah pada koefisien determinasi dan tingkat error absolut yang tinggi.
+* **Random Forest (*benchmark*):** Unggul pada nilai RMSE dan $R^2$, namun mengalami lonjakan error yang signifikan pada metrik persentase (MAPE & sMAPE).
 
 ---
 
