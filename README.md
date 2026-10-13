@@ -66,7 +66,10 @@ kecil. Karena itu sMAPE, RMSE, dan MAE digunakan sebagai pelengkap.
 ├── 📄 Rmarkdown-Regresi-Bayesian_Revisi                                        # Analisis Lengkap_Regresi Bayesian
 ├── 📄 koding Pre RShiny.R                                                      # Pre Koding Rshiny
 ├── 📄 koding app Rshiny.R                                                      # Skrip otomatisasi deploy ke ShinyApps.io
-├── 📄 HASIL REGRESI BAYESIAN.ppt                                               # Skrip otomatisasi deploy ke ShinyApps.io
+├── 📄 pree                                                                     # Pre Koding Rshiny_Revisi
+├── 📄 pree2                                                                    # Pre Koding Rshiny_Revisi
+├── 📄 app                                                                      # Skrip otomatisasi deploy ke ShinyApps.io_Revisi
+├── 📄 HASIL REGRESI BAYESIAN.ppt                                               # ppt hasil
 ├── 📄 LAPORAN HASIL PROJECT_REGRESI BAYESIAN.pdf                               # Laporan lengkap proyek 
 └── 📄 Laporan_Hasil_Project_Regresi_Bayesian_Kelompok-12(Revisi).pdf           # Laporan lengkap proyek Revisi
 ```
