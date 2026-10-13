@@ -31,9 +31,9 @@ Pemodelan dilakukan menggunakan **Regresi Bayesian** sebagai model utama, **OLS*
 
 | Model Evaluasi | RMSE | MAE | MAPE (%) | $R^2$ Score |
 | :--- | :---: | :---: | :---: | :---: |
-| 1. Baseline OLS | 1.730 | 0.8677 | 26.99 | 0.9888 |
-| **2. Regresi Bayesian (Utama)** | **1.725** | **0.8751** | **27.31** | **0.9889** |
-| 3. Random Forest (AI Benchmark) | 4.384 | 2.8463 | 743.74 | 0.9282 |
+| 1. Baseline OLS | 8.586 | 6.916 | 26.99 | 0.9888 |
+| **2. Regresi Bayesian (Utama)** | **5.918** | **2.299** | **27.31** | **0.9889** |
+| 3. Random Forest (AI Benchmark) | 3.228 | 2.208  | 743.74 | 0.9282 |
 
 ---
 
