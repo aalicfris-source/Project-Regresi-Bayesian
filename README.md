@@ -12,30 +12,28 @@
 
 ## 📌 1. Deskripsi Proyek
 
-Menerapkan Regresi Bayesian pada konteks hambatan hidrodinamika kapal. Fokusnya adalah statistical reasoning, komputasi reproducible, validasi, dashboard, dan komunikasi ilmiah (*Appliances*) berbasis data kapal yatch *Yacht Hydrodynamics* dari dataset **UCI Machine Learning Repository** (308 jumlah observasi data dengan 22 desain geometri lambung kapal dan 14 tingkat kecepatan angka).
+# Penerapan Regresi Bayesian pada Konteks Hambatan Hidrodinamika Kapal
+
+Menerapkan Regresi Bayesian pada konteks hambatan hidrodinamika kapal. Fokusnya adalah statistical reasoning, komputasi reproducible, validasi, dashboard, dan komunikasi ilmiah (Appliances) berbasis data kapal yatch Yacht Hydrodynamics dari dataset UCI Machine Learning Repository (308 jumlah observasi data dengan 22 desain geometri lambung kapal dan 14 tingkat kecepatan angka).
+
+## Tantangan Utama Data
 
 Tantangan utama data ini adalah:
-1. Variabel target (r) memiliki sebaran yang **tidak simetris (right-skewed)** dan terdapat **outlier**.
-2. Terdapat **heteroskedastisitas (varians yang tidak konstan)** pada data variabel target (r).
-3. ⁠Terdapat **multikolinearitas** pada variabel target (r) dan dari 6 variabel prediktor terdapat 3 yang memiliki multikolinearitas.
-4. ⁠Pada variabel prediktor (Fn) terdapat p**ola polinomial yang non linear**.
+1. Variabel target (r) memiliki sebaran yang tidak simetris (right-skewed) dan terdapat outlier.
+2. Terdapat heteroskedastisitas (varians yang tidak konstan) pada data variabel target (r).
+3. Terdapat multikolinearitas pada variabel target (r) dan dari 6 variabel prediktor terdapat 3 yang memiliki multikolinearitas.
+4. Pada variabel prediktor (Fn) terdapat pola polinomial yang non linear.
 
-Untuk mengatasi tantangan tersebut, diterapkan:
-Dari tantangan data tersebut maka dilakukan penanganan dengan pendekatan **bayesian** dengan pemilihan 
-**Empat model Bayesian dibangun pada data train menggunakan paket brms (MCMC NUTS,
-4 rantai, 4000 iterasi dengan 2000 warmup, total 8000 sampel posterior), semuanya dengan efek
-acak (1 | ID_kapal):
-• Model Student-t: efek linear untuk seluruh prediktor termasuk Fn, dengan likelihood
-Student-t.
-• Model Spline: Fn dimodelkan dengan spline s(Fn), likelihood Student-t*.
-• Model Heteroskedastis: spline s(Fn) pada rata-rata dan pada parameter sigma (sigma ~
-s(Fn)), likelihood Student-t.
-• Model Skew-normal: struktur sama dengan model heteroskedastis, tetapi dengan likelihood
-skew-normal.
-Prior yang digunakan bersifat weakly informative, yaitu koefisien (b) ~ Normal(0, 1),
-intercept ~ Student-t(3, 0, 10), simpangan baku efek acak (sd) dan spline (sds) ~ Exponential(1),
-derajat kebebasan nu ~ Gamma(2, 0,1), serta pada sigma digunakan intercept ~ Student-t(3, 0, 2,5)
-dan sds ~ Exponential(1)**.
+## Penanganan dan Pendekatan Model Bayesian
+
+Untuk mengatasi tantangan tersebut, diterapkan: Dari tantangan data tersebut maka dilakukan penanganan dengan pendekatan bayesian dengan pemilihan Empat model Bayesian dibangun pada data train menggunakan paket brms (MCMC NUTS, 4 rantai, 4000 iterasi dengan 2000 warmup, total 8000 sampel posterior), semuanya dengan efek acak (1 | ID_kapal): 
+
+* **Model Student-t:** efek linear untuk seluruh prediktor termasuk Fn, dengan likelihood Student-t. 
+* **Model Spline:** Fn dimodelkan dengan spline s(Fn), likelihood Student-t. 
+* **Model Heteroskedastis:** spline s(Fn) pada rata-rata dan pada parameter sigma (sigma ~ s(Fn)), likelihood Student-t. 
+* **Model Skew-normal:** struktur sama dengan model heteroskedastis, tetapi dengan likelihood skew-normal. 
+
+Prior yang digunakan bersifat *weakly informative*, yaitu koefisien (b) ~ Normal(0, 1), intercept ~ Student-t(3, 0, 10), simpangan baku efek acak (sd) dan spline (sds) ~ Exponential(1), derajat kebebasan nu ~ Gamma(2, 0,1), serta pada sigma digunakan intercept ~ Student-t(3, 0, 2,5) dan sds ~ Exponential(1)*.
 
 ---
 
@@ -49,7 +47,7 @@ Pemodelan dilakukan menggunakan **Regresi Bayesian** sebagai model utama, **OLS*
 | **2. Regresi Bayesian (Utama)** | **5,918** | **2,299** | **27,51** | **20,16** | **0,8413** |
 | 3. Random Forest (*benchmark*) | 3,228 | 2,208 | 472,18 | 60,86 | 0,9528 |
 
-## Catatan Analisis
+## Catatan
 nilai minimum r adalah 0,01 sehingga MAPE sangat sensitif terhadap nilai r yang
 kecil. Karena itu sMAPE, RMSE, dan MAE digunakan sebagai pelengkap.
 
