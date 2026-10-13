@@ -150,49 +150,22 @@ Akses aplikasi interaktif yang telah di-deploy secara langsung melalui tautan be
 ---
 
 ## 🔬 5. Fitur Interaktif Dashboard
-### 🟢 TAB 1: Eksplorasi Data Raw
-Tab ini difokuskan pada analisis eksplorasi data mentah sebelum dilakukan transformasi data:
-* **Kartu Metrik Ringkas:**
-  * Menampilkan jumlah total observasi.
-  * Menampilkan jumlah desain lambung kapal yang unik.
-  * Menampilkan jumlah variabel dalam dataset.
-  * Dilengkapi tombol *Upload File* untuk memuat file dataset Excel (`.xlsx`).
-* **Tabel Ringkasan Statistik Detail & Diagnostik:**
-  * **Statistik Deskriptif:** Menampilkan nilai *mean*, *standard deviation* (sd), *median*, *minimum*, dan *maximum*.
-  * **Uji Multikolinearitas:** Pengujian *Variance Inflation Factor* (VIF).
-  * **Uji Heteroskedastisitas:** Pengujian *Breusch-Pagan Test*.
-  * **Analisis Missing Data:** Tabel identifikasi nilai yang hilang (*missing values*) per variabel.
-* **Matriks Korelasi & Distribusi Visual:**
-  * Matriks Korelasi Spearman antar variabel.
-  * Visualisasi *Boxplot Distribution* untuk melihat variasi data dan pencilan (*outliers*).
-  * Plot Histogram distribusi untuk setiap variabel.
-  * *Scatterplot* hubungan antara hambatan kapal ($r$) terhadap variabel-variabel prediktor.
+## 📌 Deskripsi Tab Dashboard
 
-### 🟡 TAB 2: EDA Terarah & Transformasi
-Tab ini memuat analisis eksplorasi data tingkat lanjut serta proses transformasi variabel untuk optimalisasi model:
-* **Perbandingan Distribusi Target:**
-  * Visualisasi histogram perbandingan dan pengujian *skewness* (kemiringan) antara variabel target skala asli ($r$) vs hasil transformasi logaritma ($\log(r)$).
-* **Analisis Hubungan Non-Linier:**
-  * Perhitungan nilai korelasi antara: $Fn$ vs $r$, $Fn$ vs $\log(r)$, dan $Fn^2$ vs $\log(r)$.
-  * Visualisasi plot hubungan $r$ dan $\log(r)$ terhadap *Froude Number* ($Fn$) dan $Fn^2$.
-* **Geometri & Standarisasi:**
-  * Tabel korelasi variabel geometri kapal terhadap $r$ dan $\log(r)$.
-  * Tampilan *output* teks *preview tibble* dari hasil standarisasi variabel-variabel prediktor.
+### **Tab 1: EDA (Exploratory Data Analysis)**
+* **Eksplorasi Deskriptif & Distribusi:** Menampilkan tabel statistik deskriptif, pemeriksaan *missing values*, analisis *outlier* (IQR), dan matriks korelasi Spearman.
+* **Uji Asumsi Klasik:** Diagnostik multikolinearitas (VIF) dan uji heteroskedastisitas Breusch-Pagan.
+* **Visualisasi Interaktif:** Histogram dengan Kurva Densitas, *Boxplot Distribution*, dan *Scatterplot* hubungan prediktor terhadap hambatan kapal ($r$).
 
-### 🔵 TAB 3: Modeling & Evaluasi
-Tab ini menyajikan hasil pemodelan prediktif dan evaluasi komparatif dari tiga metode (**OLS**, **Regresi Bayesian**, dan **Random Forest**):
-* **Kartu Metrik Model:**
-  * Informasi nilai Bayesian $\hat{R}$ (*R-Hat*) untuk mengecek konvergensi MCMC.
-  * Informasi proporsi pembagian data: *Data Train* (80%) dan *Data Test* (20%).
-* **Evaluasi Performa Model:**
-  * Tabel komparasi metrik evaluasi pada *data test*: *Root Mean Square Error* (RMSE), *Mean Absolute Error* (MAE), *Mean Absolute Percentage Error* (MAPE), dan *Coefficient of Determination* ($R^2$).
-* **Visualisasi Bayesian & Diagnostik:**
-  * Plot kurva distribusi *Prior*, *Likelihood*, dan *Posterior*.
-  * Plot *Posterior Predictive Check* ($y$ vs $y_{rep}$).
-  * Plot *Normal QQ-Plot* untuk analisis residual Bayesian.
-* **Perbandingan Prediksi Model:**
-  * *Line plot* perbandingan nilai aktual vs nilai hasil prediksi dari ketiga model pada *data test*.
-  * *Scatter plot* kesesuaian nilai aktual vs prediksi untuk masing-masing model.
+### **Tab 2: Bayesian & Evaluasi Model**
+* **Diagnosis & Penanganan Bayesian:** Pemetaan tantangan data (skewness, heteroskedastisitas, nonlinearitas $Fn$) terhadap penanganan statistik Bayesian.
+* **Model Comparison (LOO-CV):** Perbandingan performa *Leave-One-Out Cross-Validation* dari 4 variasi model Bayesian (`m_student`, `m_spline`, `m_hetero`, dan `m_skew`).
+* **Ringkasan Parameter Posterior:** Tabel estimasi parameter posterior, kesalahan standar, dan interval kredibel 95%.
+* **Evaluasi & Perbandingan Model:** Tabel metrik performa (*RMSE, MAE, MAPE, sMAPE, R²*) antara **OLS Baseline**, **Regresi Bayesian**, dan **Random Forest Benchmark**, dilengkapi dengan plot perbandingan prediksi pada *Test Set*.
+
+### **Tab 3: Simulasi & Prediksi**
+* **Panel Parameter Desain Interaktif:** Pengaturan dinamis nilai variabel prediktor geometri lambung (`LCB`, `PC`, `LDR`, `BDR`, `LBR`) dan tingkat kecepatan (`Fn`).
+* **Kalkulasi Real-time:** Estimasi prediksi nilai hambatan sisa kapal secara instan menggunakan sampel posterior model Bayesian (lengkap dengan *95% Credible Interval*) serta estimasi *Random Forest*.
 
 ---
 
