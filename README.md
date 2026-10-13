@@ -50,10 +50,8 @@ Pemodelan dilakukan menggunakan **Regresi Bayesian** sebagai model utama, **OLS*
 | 3. Random Forest (*benchmark*) | 3,228 | 2,208 | 472,18 | 60,86 | 0,9528 |
 
 ## Catatan Analisis
-
-* **Regresi Bayesian:** Menunjukkan performa yang seimbang dan stabil pada metrik persentase kesalahan seperti **MAPE (27,51%)** dan **sMAPE (20,16%)**, serta koefisien determinasi ($R^2$ = **0,8413**).
-* **OLS (*baseline*):** Memberikan hasil paling rendah pada koefisien determinasi dan tingkat error absolut yang tinggi.
-* **Random Forest (*benchmark*):** Unggul pada nilai RMSE dan $R^2$, namun mengalami lonjakan error yang signifikan pada metrik persentase (MAPE & sMAPE).
+nilai minimum r adalah 0,01 sehingga MAPE sangat sensitif terhadap nilai r yang
+kecil. Karena itu sMAPE, RMSE, dan MAE digunakan sebagai pelengkap.
 
 ---
 
