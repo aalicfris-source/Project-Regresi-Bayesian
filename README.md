@@ -41,14 +41,15 @@ Pemodelan dilakukan menggunakan **Regresi Bayesian** sebagai model utama, **OLS*
 
 ```text
 📁 Project Upload/
-├── 📄 README.md                                            # Dokumentasi utama proyek
-├── 📄 data_kapal.xls                                       # Data dictionary ringkas
-├── 📄 KODING Rstudio REGRESI BAYESIAN.R                    # Skrip komputasi R lengkap (Analisi Regresi Bayesian)
-├── 📄 Analisis Awal_Regresi Bayesian_Kelompok 12.doc       # Analisis Awal_Regresi Bayesian
-├── 📄 koding Pre RShiny.R                                  # Pre Koding Rshiny
-├── 📄 koding app Rshiny.R                                  # Skrip otomatisasi deploy ke ShinyApps.io
-├── 📄 HASIL REGRESI BAYESIAN.ppt                           # Skrip otomatisasi deploy ke ShinyApps.io
-└── 📄 LAPORAN HASIL PROJECT_REGRESI BAYESIAN.pdf           # Laporan lengkap proyek
+├── 📄 README.md                                                                # Dokumentasi utama proyek
+├── 📄 data_kapal.xls                                                           # Data dictionary ringkas
+├── 📄 KODING Rstudio REGRESI BAYESIAN.R                                        # Skrip komputasi R lengkap (Analisi Regresi Bayesian)
+├── 📄 Analisis Awal_Regresi Bayesian_Kelompok 12.doc                           # Analisis Awal_Regresi Bayesian
+├── 📄 koding Pre RShiny.R                                                      # Pre Koding Rshiny
+├── 📄 koding app Rshiny.R                                                      # Skrip otomatisasi deploy ke ShinyApps.io
+├── 📄 HASIL REGRESI BAYESIAN.ppt                                               # Skrip otomatisasi deploy ke ShinyApps.io
+├── 📄 LAPORAN HASIL PROJECT_REGRESI BAYESIAN.pdf                               # Laporan lengkap proyek
+└── 📄 Laporan_Hasil_Project_Regresi_Bayesian_Kelompok-12(Revisi).pdf           # Laporan lengkap proyek
 ```
 
 ---
